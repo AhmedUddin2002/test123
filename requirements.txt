@@ -4,5 +4,5 @@ plotly
 numpy
 xlsxwriter
 openpyxl
-openai
+openai==0.28
 statsmodels
