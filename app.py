@@ -8,6 +8,7 @@ import base64
 import numpy as np
 from datetime import datetime
 import warnings
+import os
 warnings.filterwarnings('ignore')
 
 # PAGE CONFIGURATION
@@ -282,22 +283,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # DATA UPLOAD SECTION
-uploaded_file = st.file_uploader(
-    "📁 Upload your dataset (Excel or CSV)", 
-    type=["xlsx", "csv"],
-    help="Upload your educational institution dataset for analysis"
-)
+# ✅ SELECT FILE FROM SERVER DIRECTORY INSTEAD OF UPLOAD
+FILE_DIR = "data_files"  # Folder on server containing files
 
-if uploaded_file:
-    # Show upload success with animation
-    st.success("✅ Dataset uploaded successfully! Processing data...")
-    
-    # Load data
-    if uploaded_file.name.endswith(".xlsx"):
-        df = pd.read_excel(uploaded_file)
+if not os.path.exists(FILE_DIR):
+    os.makedirs(FILE_DIR)
+    st.warning(f"⚠️ Directory '{FILE_DIR}' created. Please place your files in it.")
+else:
+    available_files = [f for f in os.listdir(FILE_DIR) if f.endswith((".csv", ".xlsx"))]
+
+    if available_files:
+        selected_file = st.selectbox("📂 Select a file", available_files)
+        file_path = os.path.join(FILE_DIR, selected_file)
+
+        # Read selected file
+        if selected_file.endswith(".csv"):
+            df = pd.read_csv(file_path)
+        else:
+            df = pd.read_excel(file_path)
+
+        st.success(f"✅ Loaded: {selected_file}")
+
     else:
-        df = pd.read_csv(uploaded_file)
-    
+        st.error("❌ No CSV or Excel files found in the 'data_files' folder.")
+
     # Save to session state
     st.session_state["uploaded_df"] = df
     
@@ -1135,25 +1144,25 @@ if uploaded_file:
     
     st.markdown('</div>', unsafe_allow_html=True)
 
-else:
-    # Enhanced welcome message
-    st.markdown("""
-    <div class="chart-container">
-        <div style="text-align: center; padding: 3rem;">
-            <h2 style="color: #1e3c72; margin-bottom: 1rem;">📊 Welcome to the Educational Analytics Dashboard</h2>
-            <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">
-                Upload your dataset to begin analyzing educational institution performance metrics.
-            </p>
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 15px; color: white;">
-                <h3>📋 Supported Features:</h3>
-                <ul style="text-align: left; list-style: none; padding: 0;">
-                    <li>✅ Interactive KPI Dashboard</li>
-                    <li>📈 Advanced Visualizations</li>
-                    <li>🔍 Dynamic Filtering</li>
-                    <li>📊 Performance Comparisons</li>
-                    <li>💾 Data Export Options</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+#else:
+#    # Enhanced welcome message
+#    st.markdown("""
+#    <div class="chart-container">
+#        <div style="text-align: center; padding: 3rem;">
+#            <h2 style="color: #1e3c72; margin-bottom: 1rem;">📊 Welcome to the Educational Analytics Dashboard</h2>
+#            <p style="color: #666; font-size: 1.1rem; margin-bottom: 2rem;">
+#                Upload your dataset to begin analyzing educational institution performance metrics.
+#            </p>
+#            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 15px; color: white;">
+#                <h3>📋 Supported Features:</h3>
+#                <ul style="text-align: left; list-style: none; padding: 0;">
+#                    <li>✅ Interactive KPI Dashboard</li>
+#                    <li>📈 Advanced Visualizations</li>
+#                    <li>🔍 Dynamic Filtering</li>
+#                    <li>📊 Performance Comparisons</li>
+#                    <li>💾 Data Export Options</li>
+#                </ul>
+#            </div>
+#        </div>
+#   </div>
+#   """, unsafe_allow_html=True#
